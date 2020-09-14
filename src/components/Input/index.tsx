@@ -1,4 +1,10 @@
-import React, { InputHTMLAttributes, useEffect, useRef } from 'react';
+import React, {
+  InputHTMLAttributes,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import { IconBaseProps } from 'react-icons';
 import { useField } from '@unform/core';
 import { StyledInput } from './styles';
@@ -9,10 +15,20 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Input: React.FC<InputProps> = ({ name, icon: Icon, ...otherProps }) => {
-  const inputRef = useRef(null);
-  const {
- fieldName, defaultValue, error, registerField
-} = useField(name);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const [isFilled, setIsFilled] = useState(false);
+  // eslint-disable-next-line object-curly-newline
+  const { fieldName, defaultValue, error, registerField } = useField(name);
+
+  const handelInputFocus = useCallback(() => {
+    setIsFocused(true);
+  }, []);
+
+  const handleInputBlur = useCallback(() => {
+    setIsFocused(false);
+    setIsFilled(!!inputRef.current?.value);
+  }, []);
 
   useEffect(() => {
     registerField({
@@ -23,9 +39,15 @@ const Input: React.FC<InputProps> = ({ name, icon: Icon, ...otherProps }) => {
   }, [fieldName, registerField]);
 
   return (
-    <StyledInput>
+    <StyledInput isFilled={isFilled} isFocused={isFocused}>
       {Icon && <Icon size={20} />}
-      <input defaultValue={defaultValue} ref={inputRef} {...otherProps} />
+      <input
+        onFocus={handelInputFocus}
+        onBlur={handleInputBlur}
+        defaultValue={defaultValue}
+        ref={inputRef}
+        {...otherProps}
+      />
     </StyledInput>
   );
 };
